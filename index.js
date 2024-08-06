@@ -107,7 +107,7 @@ bot.on('text', (ctx) => {
         [Markup.button.callback('A(II)', 'bloodType_A')],
         [Markup.button.callback('B(III)', 'bloodType_B')],
         [Markup.button.callback('AB(IV)', 'bloodType_AB')],
-        [Markup.button.callback('Bilmayman', 'bloodType_aniqbilmaydi')]
+        [Markup.button.callback('Bilmayman', 'bloodType_bilmaydi')]
       ])
     ).then((message) => {
       messageIds[chatId].push(message.message_id);
@@ -119,7 +119,7 @@ bot.on('text', (ctx) => {
 });
 
 // Handle button actions for blood type
-bot.action(['bloodType_O', 'bloodType_A', 'bloodType_B', 'bloodType_AB', 'bloodType_aniqbilmaydi'], (ctx) => {
+bot.action(['bloodType_O', 'bloodType_A', 'bloodType_B', 'bloodType_AB', 'bloodType_bilmaydi'], (ctx) => {
   const chatId = ctx.chat.id;
   userData[chatId].bloodType = ctx.match[0].split('_')[1];
 
@@ -147,7 +147,7 @@ bot.action(['rh_positive', 'rh_negative', 'rh_unknown'], (ctx) => {
 
   ctx.reply('Sizda yuqumli kasalliklar bormi?',
     Markup.inlineKeyboard([
-      [Markup.button.callback('Ha', 'infectiousDisease_yes')],
+      [Markup.button.callback('Bor', 'infectiousDisease_yes')],
       [Markup.button.callback('Yo\'q', 'infectiousDisease_no')]
     ])
   ).then((message) => {
@@ -180,7 +180,7 @@ bot.action(['infectiousDisease_yes', 'infectiousDisease_no'], (ctx) => {
     `Bo'yi: ${userData[chatId].height} sm\n` +
     `Vazni: ${userData[chatId].weight} kg\n` +
     `Qon guruhi: ${userData[chatId].bloodType} (${userData[chatId].rhFactor})\n` +
-    `Yuqumli kasalliklar: ${userData[chatId].infectiousDisease ? 'Ha' : 'Yo\'q'}`;
+    `Yuqumli kasalliklar: ${userData[chatId].infectiousDisease ? 'Bor' : 'Yo\'q'}`;
 
   ctx.telegram.sendMessage(channelId, userInfo)
     .then((message) => {
