@@ -46,7 +46,7 @@ bot.on('contact', (ctx) => {
   messageIds[chatId].push(ctx.message.message_id);
 
   // Remove keyboard after contact is shared
-  ctx.reply('Rahmat! Endi ismingiz va familiyangizni kiriting (masalan, Abdulhaimd Haydarov):', Markup.removeKeyboard())
+  ctx.reply('Rahmat! Endi ismingiz va familiyangizni kiriting (masalan, Abdulhamid Haydarov):', Markup.removeKeyboard())
     .then((message) => {
       messageIds[chatId].push(message.message_id);
     }).catch(err => console.error('Error sending message:', err));
