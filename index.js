@@ -210,7 +210,7 @@ function handleUnexpectedMessage(ctx) {
 
 // Vercel uchun doimiy harakat
 const keepAlive = () => {
-    http.get('https://your-vercel-app-url.vercel.app');
+    http.get('https://tibbiyot-ten.vercel.app/');
 };
 
 setInterval(keepAlive, 300000); // Har 5 daqiqada "ping" qiladi
