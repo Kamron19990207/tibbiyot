@@ -1,6 +1,10 @@
+const express = require('express');
 const { Telegraf, Markup } = require('telegraf');
+
 // Bot tokenini kiriting
+
 const bot = new Telegraf('7040576594:AAG4_8s9DzktAfos4D50WeMiSQTjwUHXQaA');
+
 
 // Kanal IDsi yoki username
 const channelId = '@donorim1999';
@@ -173,50 +177,56 @@ bot.action(['infectiousDisease_yes', 'infectiousDisease_no'], (ctx) => {
 // So'rovnomani tugatish
 bot.action('complete_survey', (ctx) => {
     const chatId = ctx.chat.id;
-    const userInfo = `
-Ism: ${userData[chatId].name}
-Familiya: ${userData[chatId].surname}
-Telefon raqami: ${userData[chatId].phoneNumber}
-Tug'ilgan sanasi: ${userData[chatId].birthDate}
-Hudud: ${userData[chatId].region}
-Shahar/tuman: ${userData[chatId].city}
-Bo'yi: ${userData[chatId].height} sm
-Vazni: ${userData[chatId].weight} kg
-Qon guruhi: ${userData[chatId].bloodType}
-Rezus omili: ${userData[chatId].rhFactor}
-Yuqumli kasalliklar: ${userData[chatId].infectiousDisease ? 'Bor' : 'Yo\'q'}
-    `;
+    const user = userData[chatId];
 
-    // Kanalga xabar yuborish
-    ctx.telegram.sendMessage(channelId, userInfo)
-        .catch(err => console.error('Telegram xatoligi:', err));
+    // Foydalanuvchi ma'lumotlarini kanalga yuborish
+    ctx.telegram.sendMessage(channelId, `
+Foydalanuvchi: ${user.name} ${user.surname}
+Telefon: ${user.phoneNumber}
+Tug'ilgan sana: ${user.birthDate}
+Yashash joyi: ${user.region}, ${user.city}
+Bo'yi: ${user.height} sm
+Vazni: ${user.weight} kg
+Qon guruhi: ${user.bloodType}
+Rezus omili: ${user.rhFactor}
+Yuqumli kasalliklar: ${user.infectiousDisease ? 'Bor' : 'Yo\'q'}
+    `).catch(err => console.error('Telegram xatoligi:', err));
 
-    // Foydalanuvchiga natija va link yuborish
-    ctx.reply(userInfo, Markup.inlineKeyboard([
-        [Markup.button.url('Ko\'proq ma\'lumot', 'https://t.me/volunteer_uzbasmi')]
-    ]))
+    // Barcha xabarlarni o'chirish
+    if (messageIds[chatId]) {
+        messageIds[chatId].forEach(messageId => {
+            ctx.telegram.deleteMessage(chatId, messageId).catch(err => console.error('Xabarni o\'chirishda xatolik:', err));
+        });
+    }
+
+    // Foydalanuvchiga yakuniy xabar yuborish
+    ctx.reply('So\'rovnoma tugatildi. Rahmat!')
         .catch(err => console.error('Xabar yuborishda xatolik:', err));
 
-    // So'rovnoma tugadi
-    ctx.reply('So\'rovnoma tugallandi! Sizga rahmat!')
-        .catch(err => console.error('Xabar yuborishda xatolik:', err));
+    // Foydalanuvchi ma'lumotlarini o'chirish
+    delete userData[chatId];
+    delete messageIds[chatId];
 
     ctx.answerCbQuery();
 });
 
-// Kutilmagan xabarlarni boshqarish funksiyasi
+// Kutilmagan xabarlarni boshqarish
 function handleUnexpectedMessage(ctx) {
-    const chatId = ctx.chat.id;
-    const message = ctx.message.text;
-
-    ctx.telegram.sendMessage(adminChatId, `Kutilmagan xabar:\nFoydalanuvchi: ${ctx.from.first_name} ${ctx.from.last_name}\nUsername: @${ctx.from.username}\nXabar: ${message}`)
-        .catch(err => console.error('Admin ga xabar yuborishda xatolik:', err));
-
-    ctx.reply('Iltimos, ko\'rsatmalarga rioya qiling yoki yordam uchun admin bilan bog\'laning.')
+    ctx.reply('Kutilmagan xabar olindi. Iltimos, to\'g\'ri ma\'lumot kiriting yoki start buyrug\'idan foydalaning: /start')
         .catch(err => console.error('Xabar yuborishda xatolik:', err));
+
+    // Adminga xabar yuborish
+    ctx.telegram.sendMessage(adminChatId, `Kutilmagan xabar olindi: ${ctx.message.text} Foydalanuvchi: @${ctx.from.username || 'no username'}`)
+        .catch(err => console.error('Telegram xatoligi:', err));
 }
 
-// Botni ishga tushirish
-bot.launch()
-    .then(() => console.log('Bot ishga tushirildi'))
-    .catch(err => console.error('Botni ishga tushirishda xatolik:', err));
+// Vercel webhook sozlamalari
+const app = express();
+app.use(bot.webhookCallback('/secret-path'));
+
+const port = process.env.PORT || 3000;
+bot.telegram.setWebhook(`https://your-vercel-domain.vercel.app/secret-path`);
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
