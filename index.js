@@ -1,5 +1,4 @@
 const { Telegraf, Markup } = require('telegraf');
-
 // Bot tokenini kiriting
 const bot = new Telegraf('7040576594:AAG4_8s9DzktAfos4D50WeMiSQTjwUHXQaA');
 
