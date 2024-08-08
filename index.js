@@ -187,11 +187,21 @@ Qon guruhi: ${userData[chatId].bloodType}
 Rezus omili: ${userData[chatId].rhFactor}
 Yuqumli kasalliklar: ${userData[chatId].infectiousDisease ? 'Bor' : 'Yo\'q'}
     `;
+
+    // Kanalga xabar yuborish
     ctx.telegram.sendMessage(channelId, userInfo)
         .catch(err => console.error('Telegram xatoligi:', err));
 
+    // Foydalanuvchiga natija va link yuborish
+    ctx.reply(userInfo, Markup.inlineKeyboard([
+        [Markup.button.url('Ko\'proq ma\'lumot', 'https://t.me/volunteer_uzbasmi')]
+    ]))
+        .catch(err => console.error('Xabar yuborishda xatolik:', err));
+
+    // So'rovnoma tugadi
     ctx.reply('So\'rovnoma tugallandi! Sizga rahmat!')
         .catch(err => console.error('Xabar yuborishda xatolik:', err));
+
     ctx.answerCbQuery();
 });
 
