@@ -1,27 +1,24 @@
-
-
 const { Telegraf, Markup } = require('telegraf');
-const http = require('http');
 
-// Bot tokeningizni o'rnating
+// Bot tokenini kiriting
 const bot = new Telegraf('7040576594:AAG4_8s9DzktAfos4D50WeMiSQTjwUHXQaA');
 
-// Kanal username yoki ID sini o'rnating
+// Kanal IDsi yoki username
 const channelId = '@donorim1999';
-// Admin bilan bog'lanish uchun foydalanuvchi ID sini o'rnating
+// Admin IDsi yoki username
 const adminChatId = '@Doctormeeeee';
 
-// Foydalanuvchi ma'lumotlari va xabar ID larini saqlash uchun ob'ektlar
+// Foydalanuvchi ma'lumotlari va xabar IDlarini saqlash uchun obyektlar
 let userData = {};
 let messageIds = {};
 
 // Start buyrug'i
 bot.start((ctx) => {
     const chatId = ctx.chat.id;
-    userData[chatId] = {}; // Foydalanuvchi ma'lumotlarini saqlash uchun bo'sh ob'ekt yaratish
-    messageIds[chatId] = []; // Xabar ID larini saqlash uchun bo'sh massiv yaratish
+    userData[chatId] = {}; // Foydalanuvchi ma'lumotlarini saqlash uchun obyekt
+    messageIds[chatId] = []; // Xabar IDlarini saqlash uchun massiv
 
-    ctx.reply("Assalomu alaykum! Tibbiy so'rovnomaga xush kelibsiz. Iltimos, kontakt ma'lumotlaringizni yuboring:",
+    ctx.reply('Assalomu alaykum! Tibbiy so\'rovnomaga xush kelibsiz. Iltimos, kontakt ma\'lumotlaringizni yuboring:',
         Markup.keyboard([
             [Markup.button.contactRequest('📱 Telefon raqamni yuborish')]
         ]).resize()
@@ -29,18 +26,18 @@ bot.start((ctx) => {
         messageIds[chatId].push(message.message_id);
     }).catch(err => console.error('Xabar yuborishda xatolik:', err));
 
-    // Kanaldan yangi foydalanuvchi haqida xabar berish
-    ctx.telegram.sendMessage(channelId, `Yangi foydalanuvchi botga qo'shildi: ${ctx.from.first_name} (@${ctx.from.username || 'username yo\'q'})`)
+    // Kanalga yangi foydalanuvchi haqida xabar yuborish
+    ctx.telegram.sendMessage(channelId, `Yangi foydalanuvchi botga qo'shildi: ${ctx.from.first_name} (@${ctx.from.username || 'no username'})`)
         .catch(err => console.error('Telegram xatoligi:', err));
 });
 
-// Xatoliklarni ushlash uchun middleware
+// Xatolarni boshqarish
 bot.catch((err, ctx) => {
-    console.error(`Bot xatosi (${ctx.updateType}):`, err);
+    console.error(`Bot xatosi: ${ctx.updateType}`, err);
     ctx.reply('Xatolik yuz berdi, iltimos, keyinroq qayta urinib ko\'ring.');
 });
 
-// Kontaktni qabul qilish
+// Kontaktni boshqarish
 bot.on('contact', (ctx) => {
     const chatId = ctx.chat.id;
     userData[chatId] = userData[chatId] || {};
@@ -48,14 +45,14 @@ bot.on('contact', (ctx) => {
     messageIds[chatId] = messageIds[chatId] || [];
     messageIds[chatId].push(ctx.message.message_id);
 
-    // Kontakt yuborilgandan so'ng klaviaturani olib tashlash
-    ctx.reply("Rahmat! Endi ismingiz va familiyangizni kiriting (masalan, Abdulhamid Haydarov):", Markup.removeKeyboard())
+    // Kontakt olingandan keyin klaviaturani o'chirish
+    ctx.reply('Rahmat! Endi ismingiz va familiyangizni kiriting (masalan, Abdulhamid Haydarov):', Markup.removeKeyboard())
         .then((message) => {
             messageIds[chatId].push(message.message_id);
         }).catch(err => console.error('Xabar yuborishda xatolik:', err));
 });
 
-// Matnni qabul qilish
+// Matn xabarlarini boshqarish
 bot.on('text', (ctx) => {
     const chatId = ctx.chat.id;
     userData[chatId] = userData[chatId] || {};
@@ -67,11 +64,11 @@ bot.on('text', (ctx) => {
         userData[chatId].name = name;
         userData[chatId].surname = surname || '';
 
-        ctx.reply("Iltimos, tug'ilgan sanangizni kiriting (kun-oy-yil formatida, masalan, 01-01-2000):")
+        ctx.reply('Iltimos, tugilgan sanangizni kiriting (kun-oy-yil formatida, masalan, 01-01-2000):')
             .catch(err => console.error('Xabar yuborishda xatolik:', err));
     } else if (!userData[chatId].birthDate) {
         userData[chatId].birthDate = ctx.message.text;
-        ctx.reply("Endi yashash joyingizni tanlang:",
+        ctx.reply('Endi yashash joyingizni tanlang:',
             Markup.keyboard([
                 ['Toshkent', 'Samarqand'],
                 ['Andijon', 'Farg‘ona'],
@@ -79,32 +76,32 @@ bot.on('text', (ctx) => {
                 ['Namangan', 'Buxoro'],
                 ['Jizzax', 'Sirdaryo'],
                 ['Xorazm', 'Navoiy'],
-                ['Qoraqolpog‘iston', 'Toshkent Shahri'],
+                ['Qoraqolpogiston', 'Toshkent Shahri'],
             ]).resize()
         ).then((message) => {
             messageIds[chatId].push(message.message_id);
         }).catch(err => console.error('Xabar yuborishda xatolik:', err));
     } else if (!userData[chatId].region) {
         userData[chatId].region = ctx.message.text;
-        ctx.reply("Iltimos, tuman yoki shahar nomini kiriting:", Markup.removeKeyboard())
+        ctx.reply('Iltimos, tuman yoki shahar nomini kiriting:', Markup.removeKeyboard())
             .then((message) => {
                 messageIds[chatId].push(message.message_id);
             }).catch(err => console.error('Xabar yuborishda xatolik:', err));
     } else if (!userData[chatId].city) {
         userData[chatId].city = ctx.message.text;
-        ctx.reply("Bo'yingizni kiriting (sm):")
+        ctx.reply('Bo\'yingizni kiriting (sm):')
             .then((message) => {
                 messageIds[chatId].push(message.message_id);
             }).catch(err => console.error('Xabar yuborishda xatolik:', err));
     } else if (!userData[chatId].height && /^[0-9]+$/.test(ctx.message.text)) {
         userData[chatId].height = ctx.message.text;
-        ctx.reply("Vazningizni kiriting (kg):")
+        ctx.reply('Vazningizni kiriting (kg):')
             .then((message) => {
                 messageIds[chatId].push(message.message_id);
             }).catch(err => console.error('Xabar yuborishda xatolik:', err));
     } else if (!userData[chatId].weight && /^[0-9]+$/.test(ctx.message.text)) {
         userData[chatId].weight = ctx.message.text;
-        ctx.reply("Qon guruhiingizni tanlang:",
+        ctx.reply('Qon guruhiingizni tanlang:',
             Markup.inlineKeyboard([
                 [Markup.button.callback('O(I)', 'bloodType_O')],
                 [Markup.button.callback('A(II)', 'bloodType_A')],
@@ -116,7 +113,7 @@ bot.on('text', (ctx) => {
             messageIds[chatId].push(message.message_id);
         }).catch(err => console.error('Xabar yuborishda xatolik:', err));
     } else {
-        // Kutilmagan xabarlar
+        // Kutilmagan xabarlarni boshqarish
         handleUnexpectedMessage(ctx);
     }
 });
@@ -126,7 +123,7 @@ bot.action(['bloodType_O', 'bloodType_A', 'bloodType_B', 'bloodType_AB', 'bloodT
     const chatId = ctx.chat.id;
     userData[chatId].bloodType = ctx.match[0].split('_')[1];
 
-    ctx.reply("Sizning rezus omilingiz (Rh) qanday?",
+    ctx.reply('Sizning rezus omilingiz (Rh) qanday?',
         Markup.inlineKeyboard([
             [Markup.button.callback('Musbat (+)', 'rh_positive')],
             [Markup.button.callback('Manfiy (-)', 'rh_negative')],
@@ -138,7 +135,7 @@ bot.action(['bloodType_O', 'bloodType_A', 'bloodType_B', 'bloodType_AB', 'bloodT
     ctx.answerCbQuery();
 });
 
-// Rh omil tugmalari uchun harakatlarni boshqarish
+// Rezus omili tugmalari uchun harakatlarni boshqarish
 bot.action(['rh_positive', 'rh_negative', 'rh_unknown'], (ctx) => {
     const chatId = ctx.chat.id;
     const rhFactors = {
@@ -148,7 +145,7 @@ bot.action(['rh_positive', 'rh_negative', 'rh_unknown'], (ctx) => {
     };
     userData[chatId].rhFactor = rhFactors[ctx.match[0]];
 
-    ctx.reply("Sizda yuqumli kasalliklar bormi?",
+    ctx.reply('Sizda yuqumli kasalliklar bormi?',
         Markup.inlineKeyboard([
             [Markup.button.callback('Bor', 'infectiousDisease_yes')],
             [Markup.button.callback('Yo\'q', 'infectiousDisease_no')]
@@ -164,18 +161,20 @@ bot.action(['infectiousDisease_yes', 'infectiousDisease_no'], (ctx) => {
     const chatId = ctx.chat.id;
     userData[chatId].infectiousDisease = ctx.match[0] === 'infectiousDisease_yes';
 
-    // Oldingi xabarlarni o'chirish
-    if (messageIds[chatId] && messageIds[chatId].length > 0) {
-        messageIds[chatId].forEach(msgId => {
-            ctx.telegram.deleteMessage(ctx.chat.id, msgId)
-                .catch(err => console.error('Xabarni o\'chirishda xatolik:', err));
-        });
-        messageIds[chatId] = [];
-    }
+    ctx.reply('So\'rovnomani tugatish uchun tugmani bosing:',
+        Markup.inlineKeyboard([
+            [Markup.button.callback('So\'rovnomani tugatish', 'complete_survey')]
+        ])
+    ).then((message) => {
+        messageIds[chatId].push(message.message_id);
+    }).catch(err => console.error('Xabar yuborishda xatolik:', err));
+    ctx.answerCbQuery();
+});
 
-    // Foydalanuvchi ma'lumotlarini kanalda yuborish
+// So'rovnomani tugatish
+bot.action('complete_survey', (ctx) => {
+    const chatId = ctx.chat.id;
     const userInfo = `
-Foydalanuvchi ma'lumotlari:
 Ism: ${userData[chatId].name}
 Familiya: ${userData[chatId].surname}
 Telefon raqami: ${userData[chatId].phoneNumber}
@@ -186,35 +185,29 @@ Bo'yi: ${userData[chatId].height} sm
 Vazni: ${userData[chatId].weight} kg
 Qon guruhi: ${userData[chatId].bloodType}
 Rezus omili: ${userData[chatId].rhFactor}
-Yuqumli kasallik: ${userData[chatId].infectiousDisease ? 'Bor' : 'Yo\'q'}
-`;
-
+Yuqumli kasalliklar: ${userData[chatId].infectiousDisease ? 'Bor' : 'Yo\'q'}
+    `;
     ctx.telegram.sendMessage(channelId, userInfo)
         .catch(err => console.error('Telegram xatoligi:', err));
 
-    ctx.reply("Rahmat! So'rovnoma yakunlandi.")
+    ctx.reply('So\'rovnoma tugallandi! Sizga rahmat!')
         .catch(err => console.error('Xabar yuborishda xatolik:', err));
     ctx.answerCbQuery();
 });
 
-// Kutilmagan xabarlar uchun funksiya
+// Kutilmagan xabarlarni boshqarish funksiyasi
 function handleUnexpectedMessage(ctx) {
-    ctx.reply("Noma'lum xabar oldim. Iltimos, ko'rsatmalarni bajaring.")
-        .catch(err => console.error('Xabar yuborishda xatolik:', err));
+    const chatId = ctx.chat.id;
+    const message = ctx.message.text;
 
-    // Adminni xabardor qilish
-    const alertMessage = `Noma'lum xabar olindi:\nFoydalanuvchi: ${ctx.from.first_name}\nUsername: @${ctx.from.username}\nXabar: ${ctx.message.text}`;
-    ctx.telegram.sendMessage(adminChatId, alertMessage)
-        .catch(err => console.error('Admin xabar yuborishda xatolik:', err));
+    ctx.telegram.sendMessage(adminChatId, `Kutilmagan xabar:\nFoydalanuvchi: ${ctx.from.first_name} ${ctx.from.last_name}\nUsername: @${ctx.from.username}\nXabar: ${message}`)
+        .catch(err => console.error('Admin ga xabar yuborishda xatolik:', err));
+
+    ctx.reply('Iltimos, ko\'rsatmalarga rioya qiling yoki yordam uchun admin bilan bog\'laning.')
+        .catch(err => console.error('Xabar yuborishda xatolik:', err));
 }
 
-// Vercel uchun doimiy harakat
-const keepAlive = () => {
-    http.get('https://tibbiyot-ten.vercel.app/');
-};
-
-setInterval(keepAlive, 300000); // Har 5 daqiqada "ping" qiladi
-
 // Botni ishga tushirish
-bot.launch().then(() => console.log('Bot ishga tushdi...'))
+bot.launch()
+    .then(() => console.log('Bot ishga tushirildi'))
     .catch(err => console.error('Botni ishga tushirishda xatolik:', err));
