@@ -5,6 +5,8 @@ const axios = require('axios');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
+const bot = new Telegraf('7040576594:AAG4_8s9DzktAfos4D50WeMiSQTjwUHXQaA');
+
 
 
 
@@ -27,7 +29,7 @@ app.get('/', (req, res) => {
 // Set your bot token
 
 
-const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+
 
 // Set the channel's username or ID
 const channelId = '@donorim1999';
