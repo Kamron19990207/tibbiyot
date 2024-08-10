@@ -1,50 +1,43 @@
 const { Telegraf, Markup } = require('telegraf');
-
 const express = require('express');
-const axios = require('axios');
 const bodyParser = require('body-parser');
-require('dotenv').config();
 
-const bot = new Telegraf('7040576594:AAG4_8s9DzktAfos4D50WeMiSQTjwUHXQaA');
-
-
-
-
+// Bot tokenni quyida o'zgartiring
+const bot = new Telegraf('YOUR_BOT_TOKEN');
 
 const app = express();
 app.use(bodyParser.json());
 
-// Define a port
-const PORT =  3000;
+// Webhook URL (replace '<your-vercel-app-name>' with your actual Vercel app name)
+const webhookUrl = `https://<your-vercel-app-name>.vercel.app/webhook`;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.post('/webhook', (req, res) => {
+  bot.handleUpdate(req.body);
+  res.status(200).send('Webhook received');
 });
 
-// Basic route to check if the server is up
 app.get('/', (req, res) => {
   res.send('Bot is running!');
 });
 
-// Set your bot token
+// Set webhook
+bot.telegram.setWebhook(webhookUrl).then(() => {
+  console.log('Webhook set successfully');
+}).catch((err) => {
+  console.error('Error setting webhook:', err);
+});
 
-
-
-
-// Set the channel's username or ID
+// Handle bot commands and interactions
 const channelId = '@donorim1999';
-// Replace with the actual numeric user ID of the admin
 const adminChatId = '123456789';
 
-// Object to store user data and message IDs
 let userData = {};
 let messageIds = {};
 
-// Start command
 bot.start((ctx) => {
   const chatId = ctx.chat.id;
-  userData[chatId] = {}; // Create an empty object to store user data
-  messageIds[chatId] = []; // Initialize an empty array to store message IDs
+  userData[chatId] = {};
+  messageIds[chatId] = [];
 
   ctx.reply('Assalomu alaykum! Tibbiy so\'rovnomaga xush kelibsiz. Iltimos, kontakt ma\'lumotlaringizni yuboring:',
     Markup.keyboard([
@@ -54,12 +47,10 @@ bot.start((ctx) => {
     messageIds[chatId].push(message.message_id);
   }).catch(err => console.error('Error sending message:', err));
 
-  // Inform the channel about a new user interacting with the bot
   ctx.telegram.sendMessage(channelId, `Yangi foydalanuvchi botga qo'shildi: ${ctx.from.first_name} (@${ctx.from.username || 'no username'})`)
     .catch(err => console.error('Telegram error:', err));
 });
 
-// Handle contact
 bot.on('contact', (ctx) => {
   const chatId = ctx.chat.id;
   userData[chatId] = userData[chatId] || {};
@@ -67,14 +58,12 @@ bot.on('contact', (ctx) => {
   messageIds[chatId] = messageIds[chatId] || [];
   messageIds[chatId].push(ctx.message.message_id);
 
-  // Remove keyboard after contact is shared
   ctx.reply('Rahmat! Endi ismingiz va familiyangizni kiriting (masalan, Ali Vali):', Markup.removeKeyboard())
     .then((message) => {
       messageIds[chatId].push(message.message_id);
     }).catch(err => console.error('Error sending message:', err));
 });
 
-// Handle text
 bot.on('text', (ctx) => {
   const chatId = ctx.chat.id;
   userData[chatId] = userData[chatId] || {};
@@ -151,12 +140,10 @@ bot.on('text', (ctx) => {
       messageIds[chatId].push(message.message_id);
     }).catch(err => console.error('Error sending message:', err));
   } else {
-    // Handle unexpected messages after survey completion
     handleUnexpectedMessage(ctx);
   }
 });
 
-// Handle button actions for blood type
 bot.action(['bloodType_O', 'bloodType_A', 'bloodType_B', 'bloodType_AB', 'bloodType_aniqbilmaydi'], (ctx) => {
   const chatId = ctx.chat.id;
   userData[chatId].bloodType = ctx.match[0].split('_')[1];
@@ -173,7 +160,6 @@ bot.action(['bloodType_O', 'bloodType_A', 'bloodType_B', 'bloodType_AB', 'bloodT
   ctx.answerCbQuery();
 });
 
-// Handle button actions for Rh factor
 bot.action(['rh_positive', 'rh_negative', 'rh_unknown'], (ctx) => {
   const chatId = ctx.chat.id;
   const rhFactors = {
@@ -194,12 +180,10 @@ bot.action(['rh_positive', 'rh_negative', 'rh_unknown'], (ctx) => {
   ctx.answerCbQuery();
 });
 
-// Handle button actions for infectious diseases
 bot.action(['infectiousDisease_yes', 'infectiousDisease_no'], (ctx) => {
   const chatId = ctx.chat.id;
   userData[chatId].infectiousDisease = ctx.match[0] === 'infectiousDisease_yes';
 
-  // Delete previous messages
   if (messageIds[chatId]) {
     for (const messageId of messageIds[chatId]) {
       ctx.deleteMessage(messageId).catch(err => console.error('Error deleting message:', err));
@@ -227,20 +211,16 @@ Kanalimizga obuna bo'ling: https://t.me/${channelId}
   ctx.answerCbQuery();
 });
 
-// Handle unexpected messages
 function handleUnexpectedMessage(ctx) {
   const chatId = ctx.chat.id;
 
-  // Notify the admin of the unexpected message
   ctx.telegram.sendMessage(adminChatId, `Kutilmagan xabar: ${ctx.message.text}\nFoydalanuvchi: ${ctx.from.first_name} (@${ctx.from.username || 'no username'})`)
     .catch(err => console.error('Error notifying admin:', err));
 
-  // Inform the user that the survey is already complete
   ctx.reply('So\'rovnoma tugallandi. Yangi xabarlar qabul qilinmaydi.')
     .catch(err => console.error('Error sending message:', err));
 }
 
-// Start polling for updates
 bot.launch().then(() => {
   console.log('Bot started');
 }).catch(err => console.error('Error starting bot:', err));
