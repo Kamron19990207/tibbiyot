@@ -9,7 +9,7 @@ const app = express();
 app.use(bodyParser.json());
 
 // Webhook URL (replace '<your-vercel-app-name>' with your actual Vercel app name)
-const webhookUrl = `https://tibbiyot-lwfq-e2s5rk94e-kamron19990207s-projects.vercel.app/webhook`;
+const webhookUrl = `https://tibbiyot-lwfq-7oqqjuq5g-kamron19990207s-projects.vercel.app/webhook`;
 
 app.post('/webhook', (req, res) => {
   bot.handleUpdate(req.body);
